@@ -1,3 +1,6 @@
+![Vista previa de Central](central.png)
+
+
 # Central - Gestión de Workspaces en i3
 
 ## Descripción
@@ -22,7 +25,3 @@ pip install -r requirements.txt
 ```
 ### Modificar el nombre de los escritorios
 Para esto de debe abrir el codigo con un modificador de texto y cambiar los nombres en las variables de escritorios segun las que tengas en tu condiguracion de i3
-
-
-
-
