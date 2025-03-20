@@ -1,4 +1,4 @@
-![Vista previa de Central](central.png)
+![Vista previa de Central](Central.png)
 
 
 # Central - Gestión de Workspaces en i3
