@@ -1,207 +1,162 @@
 #!/usr/bin/env python3
-
-#definiendo las librerias
 import i3ipc
 import time
 import os
 import sys
 import pyfiglet
-
-#haciendo la conexion con i3
+# Conexión con i3
 i3 = i3ipc.Connection()
-
-#definiendo escritorios
-ws1 = "1: "
-ws2 = "2: "
-ws3 = "3:󰈹 "
-ws4 = "4:󰓇 "
-ws5 = "5: "
-ws6 = "6: "
-ws7 = "7: "
-ws8 = "8: "
-ws9 = "9: "
-ws10 = "10: "
-
-#titulos
-Central = pyfiglet.figlet_format("Central", font="cosmic")
-Term = pyfiglet.figlet_format("Term", font="cosmic")
-Apps = pyfiglet.figlet_format("Apps", font="cosmic")
-
-OpcionesCentral = ["""
-1) Modo estandar
-2) Solo terminales
-3) Programacion
-4) Notas
-5) Apps individuales
-6) comming son...
-99) Exit
-"""  
-]
-
-OpcionesTerm = ["""
-1) Terminal ws1
-2) Terminal ws2
-3) Terminal ws1 y ws2
-99) salir
-"""
-]
-
-OpcionesApps = ["""
-1) firefox
-2) spotify
-3) vscode
-4) obsidian
-99) Exit
-"""
-]
-
-#Separador
-separador = "_" * 64
-
-#salidas para el titulo
-TituloCentral = f"{Central}\n{separador}\nEscoga un modo\n{separador}\n" + "\n".join(OpcionesCentral) + f"\n{separador}"
-TituloTerm = f"{Term}\n{separador}\nEscoga un modo\n{separador}\n" + "\n".join(OpcionesTerm) + f"\n{separador}"
-TituloApps = f"{Apps}\n{separador}\nEscoga un modo\n{separador}\n" + "\n".join(OpcionesApps) + f"\n{separador}"
-
-#definiendo funciones
-def Termcava():
-    i3.command(f'workspace {ws1}')
-    i3.command('exec kitty')
-    #Esperar a que la terminal se abra
-    time.sleep(0.5)
-    # Dividir la ventana horizontalmente
-    i3.command('split v')
-    #Abrir otra terminal con cava en la parte inferior
-    i3.command('exec kitty -e cava')
-    time.sleep(1) #Esperar a que se abra
-    #fijar la terminal de arriba y cambiara el tamaño
-    i3.command ('focus up')
-    i3.command ('resize shrink height -420 px')
-    i3.command('split h')
-
-def Termcava2():
-    i3.command(f'workspace {ws2}')
-    i3.command('exec kitty')
-    #Esperar a que la terminal se abra
-    time.sleep(0.5)
-    # Dividir la ventana horizontalmente
-    i3.command('split v')
-    #Abrir otra terminal con cava en la parte inferior
-    i3.command('exec kitty -e cava')
-    time.sleep(1) #Esperar a que se abra
-    #fijar la terminal de arriba y cambiara el tamaño
-    i3.command ('focus up')
-    i3.command ('resize shrink height -420 px')
-    i3.command('split h')
-    
-def firefox():
-    # Abrir Firefox en la workspace 3
-    i3.command(f'workspace {ws3}')
-    i3.command('exec firefox')
-    time.sleep(1)
-
-def spotify():
-    # Abrir Spotify en la workspace 4
-    i3.command(f'workspace {ws4}')
-    i3.command('exec spotify')
-
-def vscode():
-    #abrir vscode :)
-    i3.command(f'workspace {ws9}')
-    i3.command('exec code')
-    time.sleep(1)
-    
-def obsidian():
-    i3.command(f'workspace {ws5}')
-    i3.command('exec obsidian')
-    time.sleep(1)
-
-#comienza el script
-try:
-    os.system("clear")
-    print(TituloCentral)
-    
-    while True:  # Bucle para evitar que el programa termine con entradas inválidas
-        try:
-            Seleccion = int(input("[+] Escoge una opción: "))
-            break  # Si la entrada es válida, salimos del bucle
-        except ValueError:
-            print("\n[!] Error: Ingresa un número válido.")
-
-    if Seleccion == 1:
-        Termcava()
-        firefox()
-        spotify()
-        print("[+] Ejecutando...")
+# Definiendo workspaces
+workspaces = {
+    "ws1": "1: ",
+    "ws2": "2: ",
+    "ws3": "3:󰈹 ",
+    "ws4": "4:󰓇 ",
+    "ws5": "5: ",
+    "ws6": "6: ",
+    "ws7": "7: ",
+    "ws8": "8: ",
+    "ws9": "9: ",
+    "ws10": "10: ",
+}
+# Función genérica para abrir aplicaciones
+def open_app(app, workspace_key):
+    if workspace_key in workspaces:
+        i3.command(f'workspace {workspaces[workspace_key]}')
+        i3.command(f'exec {app}')
+        time.sleep(1)
+        print(f"[+] {app} abierto en {workspaces[workspace_key]}")
+    else:
+        print(f"[!] Workspace '{workspace_key}' no definido.")
         
-    elif Seleccion == 2:
-        os.system("clear")
-        print(TituloTerm)
-
+# Función para abrir terminal con Cava
+def Terminal(workspace_key):
+    if workspace_key in workspaces:
+        i3.command(f'workspace {workspaces[workspace_key]}')
+        i3.command('exec kitty')
+        time.sleep(0.5)
+        i3.command('split v')
+        i3.command('exec kitty -e cava')
+        time.sleep(1)
+        i3.command('focus up')
+        i3.command('resize shrink height -420 px')
+        i3.command('split h')
+        print(f"[+] Terminal con Cava en {workspaces[workspace_key]}")
+    else:
+        print(f"[!] Workspace '{workspace_key}' no definido.")
+        
+# Opciones de menú
+options = {
+    1: ("Modo estándar", lambda: [Terminal("ws1"), open_app("firefox", "ws3"), open_app("spotify", "ws4")]),
+    2: ("Solo terminales",None),
+    3: ("Programación", lambda: [Terminal("ws1"), open_app("code", "ws9"), open_app("spotify", "ws4")]),
+    4: ("Notas", lambda: [Terminal("ws1"), open_app("firefox", "ws3"), open_app("obsidian", "ws5")]),
+    5: ("Apps individuales", None),  # Manejado aparte
+    6: ("Juegos", None),
+    7: ("Comming soon...", lambda: print("Comming soon...")),
+    99: ("Salir", lambda: sys.exit(0))
+}
+# Menú dinámico con Figlet
+def show_menu():
+    os.system("clear")  # Limpia la terminal
+    Central = pyfiglet.figlet_format("Central", font="cosmic")  # Crea un texto grande con Figlet
+    separator = "_" * 64  # Un separador visual en la terminal
+    print(f"{Central}\n{separator}\nEscoge un modo\n{separator}")
+    
+    # Muestra las opciones de modo
+    for key, (name, _) in options.items():
+        print(f"{key}) {name}")
+    print(separator)
+    
+# Inicio del script
+def main():
+    try:
         while True:
+            show_menu()  # Muestra el menú dinámico
             try:
-                Terminal = int(input("[+] Escoge un modo de terminal: "))
-                break
+                selection = int(input("[+] Escoge una opción: "))  # Solicita una opción al usuario
+################ Modulo de terminales
+                if selection == 2:
+                    separator = "_" * 64
+                    os.system("clear")
+                    title = pyfiglet.figlet_format("Terminales", font="cosmic")  # Cambié el título para que tenga sentido
+                    print(f"{title}\n{separator}\nEscoge una opción\n{separator}")  
+                    terminales = {
+                        1: ("Solo ws1", lambda: Terminal("ws1")),
+                        2: ("Solo ws2", lambda: Terminal("ws2")),
+                        3: ("ws1 y ws2", lambda: (Terminal("ws1"), Terminal("ws2")))  # Corregido el error
+                    }                 
+                    for key, (desc, _) in terminales.items():  # Cambio de variable terminales -> desc
+                        print(f"{key}) {desc}")
+                    print(separator)
+                    terminal_selection = int(input("[+] Escoge una opción: "))
+                    # Ejecuta la aplicación seleccionada
+                    if terminal_selection in terminales and terminales[terminal_selection][1]:
+                        terminales[terminal_selection][1]()  # Ejecutar la función lambda asociada
+                    elif terminal_selection == 99:  # Corregido el error de variable incorrecta
+                        continue  # Si selecciona 'Salir', regresa al menú principal
+                    else:
+                        print("[!] Opción no válida.")
+                        
+################# Modulo de apps individuales
+                elif selection == 5:
+                    separator = "_" * 64
+                    os.system("clear")
+                    title = pyfiglet.figlet_format("Apps", font="cosmic")
+                    print(f"{title}\n{separator}\nEscoge una aplicación\n{separator}")
+                    apps = {
+                        1: ("firefox", lambda: open_app("firefox", "ws3")),
+                        2: ("spotify", lambda: open_app("spotify", "ws4")),
+                        3: ("vscode", lambda: open_app("code", "ws9")),
+                        4: ("obsidian", lambda: open_app("obsidian", "ws5")),
+                        5: ("PPSSPPSDL", lambda: open_app("PPSSPPSDL", "ws2")),
+                        6: ("GBA", lambda: open_app("mgba-qt", "ws2")),
+                        99: ("Salir", None)
+                    }
+                    for key, (app, _) in apps.items():
+                        print(f"{key}) {app}")
+                    print(separator)
+                    app_selection = int(input("[+] Escoge una aplicación: "))
+                    # Ejecuta la aplicación seleccionada
+                    if app_selection in apps and apps[app_selection][1]:
+                        apps[app_selection][1]()  # Ejecutar la función lambda asociada
+                    elif app_selection == 99:
+                        continue  # Si selecciona 'Salir', regresa al menú principal
+                    else:
+                        print("[!] Opción no válida.")
+                       
+################ Modulo de juegos
+                elif selection == 6:
+                    separator = "_" * 64
+                    os.system("clear")
+                    title = pyfiglet.figlet_format("Juegos", font="cosmic")
+                    print(f"{title}\n{separator}\nEscoge una aplicación\n{separator}")
+                    juegos = {
+                        1: ("Gba", lambda: open_app("mgba-qt", "ws2"), lambda: open_app("spotify", "ws1")),
+                        2: ("PSP", lambda: open_app("PPSSPPSDL", "ws2"), lambda: open_app("spotify", "ws1")),
+                    }
+                    for key, (juego, _, _) in juegos.items():
+                        print(f"{key}) {juego}")
+                    print(separator)
+                    selection_games = int(input("[+] Escoge una aplicación: "))
+                    if selection_games in juegos:
+                        # Ejecutar la primera función lambda
+                        juegos[selection_games][1]() 
+                        # Ejecutar la segunda función lambda
+                        juegos[selection_games][2]()  
+                    elif selection_games == 99:
+                        continue  # Si selecciona 'Salir', regresa al menú principal
+                    else:
+                        print("[!] Opción no válida.")                    
+                elif selection in options and options[selection][1]:
+                    options[selection][1]()  # Ejecuta la función asociada a la opción
+                else:
+                    print("[!] Opción no válida.")
             except ValueError:
                 print("\n[!] Error: Ingresa un número válido.")
-
-        if Terminal == 1:
-            Termcava()
-        elif Terminal == 2:
-            Termcava2()
-        elif Terminal == 3:
-            Termcava()
-            Termcava2()
-        elif Terminal == 99:
-            print("[+] Saliendo... ")
-
-    elif Seleccion == 3:
-        navegador = input("¿Necesitas Firefox? (s/n): ").strip().lower()
-        if navegador == "s":
-            Termcava()
-            firefox()
-            spotify()
-            vscode()
-        elif navegador == "n":
-            Termcava()
-            spotify()
-            vscode()
-        print("[+] Ejecutando... ")
-
-    elif Seleccion == 4:
-        Termcava()
-        firefox()
-        obsidian()
-        print("[+] Ejecutando...")
-
-    elif Seleccion == 5:
-        os.system("clear")
-        print(TituloApps)
-
-        while True:
-            try:
-                App = int(input("[+] Escoge una opción: "))
-                break
-            except ValueError:
-                print("\n[!] Error: Ingresa un número válido.")
-
-        if App == 1:
-            firefox()
-        elif App == 2:
-            spotify()
-        elif App == 3:
-            vscode()
-        elif App == 4:
-            obsidian()
-        elif App == 99:
-            print("[+] Saliendo... ")
-
-    elif Seleccion == 6:
-        print("Comming soon...")
-
-    elif Seleccion == 99:
-        print("[+] Saliendo... ")
-
-except KeyboardInterrupt:
-    print("\n[+] Saliendo... (Ctrl+C detectado)")
-    sys.exit(0)
+    except KeyboardInterrupt:
+        print("\n[+] Saliendo... (Ctrl+C detectado)")
+        sys.exit(0)
+# Ejecutar el script
+if __name__ == "__main__":
+    main()
